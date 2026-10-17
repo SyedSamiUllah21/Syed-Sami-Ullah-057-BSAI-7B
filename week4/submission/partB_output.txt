@@ -1,0 +1,41 @@
+Part B - cleaned daily sessions
+days 529, recorded 516, missing 13, duplicated 0, sorted True, span 2024-04-01 to 2025-09-11
+
+Q1 window_report
+ window    raw_sd  smoothed_sd  variation_removed_pct  periods_lost_each_end                                                          cycle removed
+      7 6840.9138    4727.2795                   30.9                      3                                 the weekly cycle (exactly one Mon-Sun)
+     28 6840.9138    4522.7532                   33.9                     14              the weekly cycle (four whole weeks) plus ~monthly wiggles
+     91 6840.9138    4233.4941                   38.1                     45 weekly + monthly, and most of the seasonal swing (13 weeks, a quarter)
+
+Q2 at Black Friday 2024-11-29
+raw 113,710 | fortnight median (excl. the day) 24,780
+14-day centred mean   33,468  (+35% vs normal)
+14-day centred median 24,780  (+0%)
+EWMA (span 14)        38,029  (+53%)
+days the 14-day mean stays >10% above the median around BF: 17
+
+Q3 seasonal_decompose(additive, period=7)  [13 outage days linearly interpolated for this step only]
+weekly seasonal by day (Mon..Sun): [-2238, -2327, -2332, -2334, -992, 4973, 5250]
+peak-to-trough amplitude: 7,584 sessions/day (high Sun, low Thu)
+largest residual: 2024-11-29  (+74,611); next: 2024-12-02 (-13,154)
+period=365 -> ValueError: x must have 2 complete cycles requires 730 observations. x only has 529 observation(s)
+
+Q4 lag_at_turn, 31-day window
+whole series (minimum is the start of the series): trailing 2024-05-22, centred 2024-05-07, lag 15 days vs half-window 15
+the 2025 spring turn: trailing 2025-06-11, centred 2025-05-27, lag 15 days vs half-window 15
+
+Q5 60 start x window combinations: RISING 34, FALLING 26
+window        7      14     28    56     91
+start                                      
+Apr 2024   875.0  257.0   48.0   6.0   17.0
+May 2024   170.0   28.0   16.0  28.0   44.0
+Jun 2024  -955.0 -187.0  -20.0  40.0   58.0
+Jul 2024  1004.0  282.0  125.0  87.0   85.0
+Aug 2024   -82.0   72.0   58.0  76.0   79.0
+Sep 2024   -26.0   97.0  103.0  81.0  129.0
+Oct 2024   876.0  266.0  136.0  71.0   69.0
+Nov 2024  -782.0 -121.0  -26.0  22.0  -24.0
+Dec 2024    23.0   11.0   27.0 -11.0  -27.0
+Jan 2025   -62.0   -2.0  -30.0 -36.0  -44.0
+Feb 2025 -1575.0 -448.0 -154.0 -70.0  -52.0
+Mar 2025 -1414.0 -334.0 -126.0 -63.0  -36.0

@@ -1,0 +1,10 @@
+problem,rule,rows_affected,before,after
+ts in two formats (ISO and DD/MM/YYYY),parse each format explicitly; slash rows are day-first,3651,text; mixed-parse span 2024-01-04 to 2025-12-08,datetime; span 2024-04-01 to 2025-09-11
+device written in 3 different cases,strip + title-case,1447,6 labels,3 labels
+rows not in time order,sort by parsed timestamp,12670,unsorted,monotonic increasing
+"duplicated timestamps (exact repeats, often one ISO + one slash copy)",keep the first copy,286,"12,670 rows; mean 970.2 sessions/h","12,384 rows; mean 969.4 sessions/h"
+hours never recorded,reindex onto a full hourly calendar; leave NaN so lines break; no interpolation,312,"12,384 of 12,696 hours",312 NaN hours = 13 whole days
+sessions = -1 sentinel (no reading),set to NaN; fill the hour linearly from its neighbours (same hour ±7 days where a neighbour is a missing day); flag as imputed,287,mean 946.9 sessions/h with -1 counted,mean 969.0 sessions/h
+partial final month (extract stops 11 Sep 2025),"keep the 11 complete days in the daily chart, mark the end; never aggregate Sep-2025 as a month",11,Sep-2025 as a month would be 11/30 of a month,marked on panel 1; excluded from any monthly total
+SKU-0127 listed under two parents (Audio and Wearables),keep the Audio row (sku_name AUDI-04); drop the Wearables copy,1,Wearables 10.13% of net,Wearables 9.35% of net
+7 SKUs with negative net revenue,"negatives have no area: kept out of the treemap and bar lengths, reported in the figure note",7,net 1711.38 PKR m incl. negatives,net 1712.45 PKR m drawn; -1.07 shown as text
