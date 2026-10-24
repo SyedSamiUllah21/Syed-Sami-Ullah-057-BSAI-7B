@@ -1,0 +1,62 @@
+population spans 589x, so hi/lo = 589 in AREA and sqrt(589) = 24.3 in diameter
+
+ lo (pt²)  hi (pt²)  smallest across (pt)  largest across (pt)  centres under a bigger mark  centres under the largest
+        2      1178                  1.41                 34.3                            6                          3
+        4      2356                  2.00                 48.5                           12                          4
+        6      3534                  2.45                 59.4                           19                          6
+       10      5890                  3.16                 76.7                           26                          7
+       16      9424                  4.00                 97.1                           37                         20
+chosen sizes = (6, 3,534) pt²
+diameter ratio = sqrt(3,534 / 6) = 24.3x (area ratio 589x = population ratio)
+if pop drove the RADIUS instead, the diameter ratio would be 589x and the area ratio 346,921x
+9,000 points; within 0.5 of (3.1, 3.0): 709, within 1.0: 800
+TRUE density, points within 0.15: cluster 133 vs core 82 -> cluster is 1.62x as dense as the core
+
+     method  cluster  main core  dip between them  cluster / core  separate blob  shows it denser than core
+     opaque     0.63       0.63              0.00            1.00           True                      False
+transparent     0.17       0.12              0.00            1.46           True                       True
+     hexbin     0.74       0.47              0.00            1.58           True                       True
+        kde     0.57       0.78              0.05            0.73           True                      False
+scaling  Aldonia  2nd richest  median   other 59 span share of axis used by other 59
+ minmax    1.000        0.106   0.017  0.000 to 0.106                          10.6%
+ zscore    7.501        0.473  -0.225 -0.362 to 0.473                          10.6%
+   rank    1.000        0.983   0.508  0.017 to 0.983                          98.3%
+explained variance ratio: [0.675, 0.162, 0.077, 0.065, 0.022]
+first two components: 67.5% + 16.2% = 83.7%  -> a 2-axis picture misses 16.3%
+PC1 loadings: {'gdp_pc': 0.32, 'healthcare_access': 0.51, 'urban_pct': 0.46, 'median_age': 0.45, 'cases_per_100k': -0.47}
+PC2 loadings: {'gdp_pc': 0.87, 'healthcare_access': -0.25, 'urban_pct': -0.07, 'median_age': -0.4, 'cases_per_100k': -0.13}
+(with log10 gdp first: PC1+PC2 = 87.3%, PC2 alone 8.6%)
+four northernmost (by vertex-mean latitude): ['D21', 'D22', 'D19', 'D24']
+their share of the total area: spherical 10.51%, degree shoelace 11.08% (+5.5%)
+most distorted single district: D21 (2.15% -> 2.27%, x1.056); most shrunk: D02 (x0.962)
+Mercator area inflation, measured on the projected polygons: 1.24x (D02) to 1.49x (D21); north vs south 1.21x
+check: sec^2(latitude) at the district centres runs 1.24 to 1.49
+         lat  share_sphere  share_degrees  distortion  mercator_inflation
+D02  25.9456        0.0902         0.0867      0.9616              1.2374
+D03  26.0302        0.0449         0.0432      0.9623              1.2395
+D01  26.0446        0.0367         0.0353      0.9624              1.2396
+D05  26.0703        0.0440         0.0423      0.9625              1.2399
+D04  26.0712        0.0932         0.0898      0.9626              1.2402
+D06  26.1221        0.0438         0.0422      0.9631              1.2413
+D11  29.0466        0.0184         0.0182      0.9886              1.3080
+D09  29.0473        0.0205         0.0203      0.9883              1.3072
+D08  29.0493        0.0463         0.0458      0.9889              1.3088
+D12  29.0591        0.0163         0.0161      0.9890              1.3091
+D10  29.1005        0.0453         0.0449      0.9894              1.3099
+D07  29.1978        0.0225         0.0223      0.9903              1.3125
+D18  31.8281        0.0394         0.0401      1.0176              1.3861
+D17  31.8481        0.0361         0.0367      1.0177              1.3863
+D14  31.9773        0.0705         0.0719      1.0194              1.3907
+D16  32.0003        0.0923         0.0941      1.0197              1.3916
+D13  32.0469        0.0303         0.0309      1.0199              1.3922
+D15  32.0517        0.0394         0.0402      1.0201              1.3927
+D23  34.8718        0.0217         0.0228      1.0537              1.4859
+D20  34.8737        0.0432         0.0455      1.0537              1.4858
+D24  34.8912        0.0207         0.0218      1.0540              1.4866
+D19  34.8936        0.0187         0.0197      1.0537              1.4858
+D22  34.9710        0.0443         0.0467      1.0547              1.4888
+D21  35.0345        0.0215         0.0227      1.0558              1.4917
+pooled rate 8.72 per 100k; outside the 95% limits: 1 of 40 -> ['U32']
+expected outside by chance alone (5% of 40): 2
+population where the 95% funnel around 9/100k no longer reaches 18/100k: 42,684
+population where the 95% bands around 9 and around 18 stop overlapping: 248,783
