@@ -1,0 +1,104 @@
+
+==============================================================================
+FILE 1  district_grid.csv  (the district register)
+==============================================================================
+rows 25, columns 13
+dtypes: code=str, district=str, zone=str, population=int64, households=int64, area_km2=float64, lon=float64, lat=float64, income_pc_usd=int64, electrification_pct=str, solar_kw_installed=int64, outages=int64, outage_minutes=int64
+key `code`: 24 unique of 25 rows -> duplicated: ['D11']
+code   district zone  population  households  solar_kw_installed  outages  outage_minutes
+ D11      Kotla   P3     4091000      616114              719625    31283         6422838
+ D11 Kotla City   P3     4091000      616114              719637    31280         6422428
+sentinel scan: outage_minutes has 2 value(s) in [-1, -9, -99, -999, 999, 9999] -> ['D09', 'D20'] = [-1, -1]
+electrification_pct dtype=str: 20 parse as numbers, 2 are text [['D04', '88.1%'], ['D18', '72.9%']], 3 blank ['D06', 'D14', 'D23']
+ranges of anything I divide by:
+   population   min    468,000.0 (D14)   max 10,966,000.0 (D17)
+   households   min        182.0 (D21)   max  1,566,571.0 (D17)
+   area_km2     min     16,745.7 (D12)   max     95,677.6 (D04)
+   outages      min      3,234.0 (D16)   max     63,237.0 (D17)
+   persons per household  min 5.70   median 6.55   max 5,939.6 (D21)
+
+D11 rows differ only in: ['district', 'solar_kw_installed', 'outages', 'outage_minutes'] -> kept 'Kotla', dropped 1 row ('Kotla City')
+after cleaning: 24 rows, 24 codes, population 57,857,000, households 8,908,512
+persons per household 5.70 - 7.36
+electrification 66.6 - 90.3 with 3 missing
+usable outage_minutes: 22 of 24, mean interruption 77 - 214 minutes
+interruptions, all districts: 388,879
+
+==============================================================================
+FILE 2  regions.geojson  (boundaries) and every join
+==============================================================================
+features 24, unique codes 24, geometry type Polygon (read_geojson raises otherwise)
+join register <-> GeoJSON on code: 24 matched | register rows with no polygon: 0 | polygons with no row: 0
+name check after the D11 fix: 0 name mismatches
+area_km2 vs spherical polygon area (geolib.polygon_area_km2): max deviation 0.0002%
+lon/lat point inside its own polygon: 24 of 24
+
+==============================================================================
+FILE 3  grid_daily.csv  (six zones, daily returns)
+==============================================================================
+rows 3061, columns 5
+dtypes: date=str, zone=str, cumulative_mwh=float64, peak_load_mw=float64, outage_minutes=int64
+zones: {'P1': 520, 'P2': 511, 'P3': 517, 'P4': 506, 'P5': 496, 'P6': 511}  (joins to register zones: True)
+audit_index on the raw date column: dtype_ok=False monotonic=False -> nothing else can be checked yet
+date shapes: {'9999-99-99': 2887, '99/99/9999': 174}
+the 99/99/9999 rows: first field 01-30, second field always [11], year ['2025'] -> day first (DD/MM/YYYY): a month can't be 30
+parsed: 174 DD/MM rows all land in ['2025-11']; ISO rows in that month: 0
+file order: sorted by date before = False; now sorted by zone, date
+duplicate zone-days: 15 keys on 30 rows; exact copies to drop: 12
+duplicates that disagree (same meter reading, different peak and minutes):
+      date zone  cumulative_mwh  peak_load_mw  outage_minutes
+2025-10-25   P3      12363361.7        2429.7             159
+2025-10-25   P3      12363361.7        2337.4             215
+2026-02-25   P5      12010147.6        1004.9              11
+2026-02-25   P5      12010147.6        1044.6               8
+2026-08-16   P5      15736740.2        1491.1              63
+2026-08-16   P5      15736740.2        1550.0              47
+zone-days kept: 3,046
+
+reporting span 2025-04-01 -> 2026-09-11 = 529 days x 6 zones = 3,174 slots
+   P1: rows 517  dtype_ok=True  monotonic=True  dupes=0  missing days=12  partial_tail=True (2026-09: 11 days)
+   P2: rows 508  dtype_ok=True  monotonic=True  dupes=0  missing days=21  partial_tail=True (2026-09: 11 days)
+   P3: rows 514  dtype_ok=True  monotonic=True  dupes=0  missing days=15  partial_tail=True (2026-09: 11 days)
+   P4: rows 505  dtype_ok=True  monotonic=True  dupes=0  missing days=24  partial_tail=True (2026-09: 11 days)
+   P5: rows 493  dtype_ok=True  monotonic=True  dupes=0  missing days=36  partial_tail=True (2026-09: 11 days)
+   P6: rows 509  dtype_ok=True  monotonic=True  dupes=0  missing days=20  partial_tail=True (2026-09: 11 days)
+zone-days never reported: 128 (= 3174 - 3046); worst zone P5 with 36, best P1 with 12; worst zone-month P5 2025-12 with 9 days
+cumulative_mwh  min        1,180.0  max   63,210,730.9  sentinel hits 0  negatives 0  zeros 0
+peak_load_mw    min           -1.0  max        9,917.5  sentinel hits 46  negatives 46  zeros 0
+outage_minutes  min            0.0  max          512.0  sentinel hits 0  negatives 0  zeros 212
+peak_load_mw = -1 on 46 zone-days: {'P1': 5, 'P2': 10, 'P3': 9, 'P4': 4, 'P5': 7, 'P6': 11}
+outage_minutes zeros: 212 spread over 6 zones; max 512 min < 1,440 in a day, so zeros are read as real no-interruption days
+
+zone-days where the meter reading goes DOWN: 1
+   P4 2026-02-16 21,444,254.8 -> 2026-02-17 1,180.0  (then +42,201.4 next day)
+daily energy values: 2,924 of 3,046 reported zone-days; 122 have none (next day unreported, the swap day, or the last day)
+monthly energy: 108 zone-months; month-edge readings interpolated: 5; not computed: 1 ([['P4', '2026-02']]); partial final month: 2026-09 (10 day-steps, data end 2026-09-11)
+
+P1, June 2026 energy: differenced 1,200,239 MWh | the column summed 574,845,315 MWh | 479x too big
+
+==============================================================================
+FILE 4  generation_mix.csv  (monthly generation by category)
+==============================================================================
+rows 162, columns 4
+dtypes: month=str, source=str, subsource=str, mwh=int64
+months 18 (2025-04 -> 2026-09), calendar gaps 0, rows per month [9]
+key month+source+subsource unique: True; mwh min 446,189 max 12,105,903, sentinels 0
+categories: All sources > Total; Fossil > Coal, Furnace oil, Gas; Hydro > Dam, Run-of-river; Imported > Imported; Renewable > Solar, Wind
+each subsource under exactly one source: True
+rows that are totals, not parts: 18 ('All sources / Total', one per month)
+parts per month: [8] -> 144 part rows
+parts summed vs published total: max |difference| 2 MWh in any month
+every row summed / published total: [2.0] in every month -> 200.0% of generation
+generation 2025-04 -> 2026-09: -5.0% | solar +82.1% in MWh, share 4.1% -> 7.9%
+
+==============================================================================
+WRITE
+==============================================================================
+   clean/district_grid_clean.csv         24 rows
+   clean/generation_parts.csv           144 rows
+   clean/generation_totals.csv           18 rows
+   clean/grid_daily_clean.csv          3046 rows
+   clean/grid_daily_unreported.csv      128 rows
+   clean/grid_monthly_energy.csv        108 rows
+raw files in data/ re-read and compared: unchanged
+wrote partA_decisions.md (17 decisions)
